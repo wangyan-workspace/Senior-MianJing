@@ -22,7 +22,7 @@ var getListLength = function (head) {
 
   return len;
 };
-
+// 双指针
 var getIntersectionNode = function (headA, headB) {
   let curA = headA;
   let curB = headB;
