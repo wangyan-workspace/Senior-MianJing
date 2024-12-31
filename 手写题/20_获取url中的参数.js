@@ -41,5 +41,9 @@ function getUrlParams(sUrl, sKey) {
   }
 }
 
-console.log(getUrlParams('http://www.nowcoder.com?key=1&key=2&key=3&test=4#hehe','key'));
-console.log(getUrlParams('http://www.nowcoder.com?key=1&key=2&key=3&test=4#hehe'));
+console.log(
+  getUrlParams("http://www.nowcoder.com?key=1&key=2&key=3&test=4#hehe", "key")
+); // [ '1', '2', '3' ]
+console.log(
+  getUrlParams("http://www.nowcoder.com?key=1&key=2&key=3&test=4#hehe")
+); // { key: [ '1', '2', '3' ], test: [ '4' ] }
