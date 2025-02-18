@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text" name="" id="" />
+    <script>
+        // 防抖函数
+        function debounce(fn, delay) {
+            let timer = null;
+
+            return function (...args) {
+                if (timer) {
+                    clearTimeout(timer);
+                }
+                timer = setTimeout(() => {
+                    fn.apply(this, args);
+                }, delay)
+            }
+        }
+        // 节流函数
+        function throttle(fn, interval) {
+            let startTime = 0;
+
+            return function (...args) {
+                let nowTime = new Date().getTime();
+                let remainTime = interval - (nowTime - startTime);
+                if (remainTime <= 0) {
+                    fn.apply(this, args);
+                    startTime = nowTime;
+                }
+            }
+        }
+
+        const input = document.querySelector('input');
+        let count = 0;
+        function handleOnInput(e) {
+            console.log('e', e);
+            console.log(`发送第${count++}次网络请求`)
+        }
+        // 防抖测试
+        // input.oninput = debounce(handleOnInput, 500);
+        // 节流测试
+        input.oninput = throttle(handleOnInput, 500);
+    </script>
+</body>
+
+</html>
