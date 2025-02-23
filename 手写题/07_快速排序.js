@@ -1,6 +1,6 @@
 function quickSort(arr) {
   function partition(left, right) {
-    if (left >= right) return;
+    if (left >= right) return; // 注意🌟：终止条件
     let pivotVale = right;
     let i = left;
     let j = right - 1;

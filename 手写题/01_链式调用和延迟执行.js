@@ -6,8 +6,15 @@ function arrange(name) {
   });
 
   function wait(time) {
+    // task.push(
+    //   () =>
+    //     new Promise((resolve) => {
+    //       setTimeout(resolve, time * 1000);
+    //     })
+    // );
+    // 如果有大括号包裹，记得return一下，上下两种方式表达是同一个意思
     task.push(() => {
-      new Promise((resolve) => {
+      return new Promise((resolve) => {
         setTimeout(resolve, time * 1000);
       });
     });
@@ -22,8 +29,15 @@ function arrange(name) {
   }
 
   function waitFirst(time) {
+    // task.unshift(
+    //   () =>
+    //     new Promise((resolve) => {
+    //       setTimeout(resolve, time * 1000);
+    //     })
+    // );
+    // 如果有大括号包裹，记得return一下，上下两种方式表达是同一个意思
     task.unshift(() => {
-      new Promise((resolve) => {
+      return new Promise((resolve) => {
         setTimeout(resolve, time * 1000);
       });
     });
