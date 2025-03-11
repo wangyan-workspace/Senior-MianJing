@@ -514,17 +514,20 @@ const delay = function delay(interval) {
 
 /* 大文件上传 */
 (function () {
+    // 获取DOM元素
     let upload = document.querySelector('#upload7'),
         upload_inp = upload.querySelector('.upload_inp'),
         upload_button_select = upload.querySelector('.upload_button.select'),
         upload_progress = upload.querySelector('.upload_progress'),
         upload_progress_value = upload_progress.querySelector('.value');
 
+    // 校验当前的上传按钮是否可以点击（解决文件上传中被恶意点击的问题）
     const checkIsDisable = element => {
         let classList = element.classList;
         return classList.contains('disable') || classList.contains('loading');
     };
 
+    // 生成buffer数据，通过SparkMD5基于我们文件的内容生成hash值
     const changeBuffer = file => {
         return new Promise(resolve => {
             let fileReader = new FileReader();
@@ -547,21 +550,23 @@ const delay = function delay(interval) {
         });
     };
 
+    // 监听文件选择的事件，触发执行函数
     upload_inp.addEventListener('change', async function () {
+        // 获取到文件
         let file = upload_inp.files[0];
         if (!file) return;
+        // 让按钮处于loading状态，进度条展示出来
         upload_button_select.classList.add('loading');
         upload_progress.style.display = 'block';
 
-        // 获取文件的HASH
-        let already = [],
-            data = null,
+        let already = [], // 用于存储已经上传成功的文件切片的信息
+            data = null, // 用于记录从后端返回的数据内容
             {
                 HASH,
                 suffix
-            } = await changeBuffer(file);
+            } = await changeBuffer(file); // 获取文件的HASH
 
-        // 获取已经上传的切片信息
+        // 1、获取已经上传的切片信息
         try {
             data = await instance.get('/upload_already', {
                 params: {
@@ -569,16 +574,17 @@ const delay = function delay(interval) {
                 }
             });
             if (+data.code === 0) {
-                already = data.fileList;
+                already = data.fileList; // 更新already内容
             }
         } catch (err) {}
 
-        // 实现文件切片处理 「固定数量 & 固定大小」
-        let max = 1024 * 100,
-            count = Math.ceil(file.size / max),
-            index = 0,
-            chunks = [];
-        if (count > 100) {
+        // 2、实现文件切片处理 「固定数量 & 固定大小」
+        // 工作中常采用「固定数量 & 固定大小」相结合的方式，如果切片过多，例如： 10W个，对于传输的时间成本，以及性能上都会有影响，这种情况下，将按照固定切片的数量，重新切割文件内容
+        let max = 1024 * 100, // 设置固定切片大小
+            count = Math.ceil(file.size / max), // 计算切片个数
+            index = 0, // 用于记录处理、传输第几个切片
+            chunks = []; // 用于存储每一部分的切片内容
+        if (count > 100) { // 如果切片个数大于100个，则按照固定切片个数重新进行切割
             max = file.size / 100;
             count = 100;
         }
@@ -587,20 +593,22 @@ const delay = function delay(interval) {
                 file: file.slice(index * max, (index + 1) * max),
                 filename: `${HASH}_${index+1}.${suffix}`
             });
-            index++;
+            index++; // 每次切片后 + 1
         }
 
         // 上传成功的处理
-        index = 0;
+        index = 0; // 用于进度条的状态计算
+        // 文件上传成功之后恢复到最初的样子
         const clear = () => {
             upload_button_select.classList.remove('loading');
             upload_progress.style.display = 'none';
             upload_progress_value.style.width = '0%';
         };
+
         const complate = async () => {
             // 管控进度条
             index++;
-            upload_progress_value.style.width = `${index/count*100}%`;
+            upload_progress_value.style.width = `${index/count*100}%`; // 更新进度条的样式
 
             // 当所有切片都上传成功，我们合并切片
             if (index < count) return;
@@ -626,9 +634,9 @@ const delay = function delay(interval) {
             }
         };
 
-        // 把每一个切片都上传到服务器上
+        // 3、把每一个切片都上传到服务器上
         chunks.forEach(chunk => {
-            // 已经上传的无需在上传
+            // 已经上传的无需在上传（对应实现断点续传）
             if (already.length > 0 && already.includes(chunk.filename)) {
                 complate();
                 return;
@@ -649,6 +657,7 @@ const delay = function delay(interval) {
         });
     });
 
+    // 监听上传的按钮点击事件
     upload_button_select.addEventListener('click', function () {
         if (checkIsDisable(this)) return;
         upload_inp.click();
